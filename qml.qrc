@@ -1,5 +1,12 @@
 <RCC>
     <qresource prefix="/">
         <file>main.qml</file>
+        <file>function.js</file>
+        <file>Loading.qml</file>
+        <file>RefreshButton.qml</file>
+        <file>EnableBluetoothButton.qml</file>
+        <file>PairedDevice.qml</file>
+        <file>BluetoothUI.qml</file>
+        <file>AvailableDevices.qml</file>
     </qresource>
 </RCC>

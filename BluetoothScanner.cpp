@@ -24,7 +24,7 @@ void BluetoothScanner::startDeviceDiscovery()
             qDebug() << "Bluetooth already enabled";
         }
         QBluetoothDeviceDiscoveryAgent *discoveryAgent = new QBluetoothDeviceDiscoveryAgent(this);
-        discoveryAgent->setInquiryType(QBluetoothDeviceDiscoveryAgent::GeneralUnlimitedInquiry);
+        //discoveryAgent->setInquiryType(QBluetoothDeviceDiscoveryAgent::GeneralUnlimitedInquiry);
         connect(discoveryAgent, &QBluetoothDeviceDiscoveryAgent::deviceDiscovered,
                 this, &BluetoothScanner::deviceDiscovered);
         // Start a discovery
@@ -50,6 +50,9 @@ void BluetoothScanner::clearAllDevice()
 
 void BluetoothScanner::deviceDiscovered(const QBluetoothDeviceInfo &device)
 {
+    if(device.minorDeviceClass() != QBluetoothDeviceInfo::AudioVideoDevice) {
+        return;
+    }
     if (device.name().contains("Bluetooth ")) {
         return;
     }
@@ -58,7 +61,6 @@ void BluetoothScanner::deviceDiscovered(const QBluetoothDeviceInfo &device)
             return;
         }
     }
-    //qDebug() << "Found new device:" << device.name() << '(' << device.deviceUuid().toString() << ')';
     availableDevices.append(device);
 }
 
@@ -69,14 +71,16 @@ void BluetoothScanner::connectToDevice(QString deviceName)
         delete mSocket;
         mSocket = nullptr;
     }
+
     mSocket = new QBluetoothSocket(QBluetoothServiceInfo::RfcommProtocol, this);
-    QBluetoothUuid serviceUuid = QBluetoothUuid::GenericAudio;
+    //QBluetoothUuid serviceUuid = QBluetoothUuid::AudioSink;
+    QBluetoothUuid serviceUuid(QStringLiteral("0000110B-0000-1000-8000-00805F9B34FB"));
     connect(mSocket, &QBluetoothSocket::connected, this, &BluetoothScanner::socketConnected);
     connect(mSocket, &QBluetoothSocket::disconnected, this, &BluetoothScanner::socketDisconnected);
     for(int i = 0; i < availableDevices.count(); i++) {
         if(deviceName == availableDevices.at(i).name()) {
             mSocket->connectToService(QBluetoothAddress(availableDevices.at(i).address()), serviceUuid,
-                                      QIODevice::ReadOnly);
+                                      QIODevice::WriteOnly);
             break;
         }
     }
@@ -87,7 +91,7 @@ void BluetoothScanner::disconnecToDevice()
     mSocket->disconnectFromService();
     delete mSocket;
     mSocket = nullptr;
-    connect(mSocket, &QBluetoothSocket::disconnected, this, &BluetoothScanner::socketDisconnected);
+    //connect(mSocket, &QBluetoothSocket::disconnected, this, &BluetoothScanner::socketDisconnected);
 }
 
 void BluetoothScanner::socketConnected()
